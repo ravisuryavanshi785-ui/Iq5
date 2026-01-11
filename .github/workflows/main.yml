@@ -1,0 +1,43 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  # Version 4 use karein
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4 # Version 4 use karein
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Create www directory and move index.html
+        run: |
+          mkdir -p www
+          cp index.html www/  # Capacitor ko www folder chahiye hota hai
+
+      - name: Capacitor Setup
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Build with Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4 # Version 4 use karein
+        with:
+          name: app-release-unsigned
+          path: android/app/build/outputs/apk/debug/app-debug.apk
